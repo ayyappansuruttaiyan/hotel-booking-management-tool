@@ -67,7 +67,8 @@ function CreateCabinForm() {
 
   // we cannot write all the above codes inside the onSubmit fn. Because, after successful only we insert the date into the db, otherwise no.
   function onSubmit(data) {
-    mutate(data);
+    console.log(data);
+    mutate({ ...data, image: data.image[0] });
   }
 
   function onError(errors) {
@@ -152,7 +153,11 @@ function CreateCabinForm() {
 
       <FormRow>
         <Label htmlFor="image">Cabin photo</Label>
-        <FileInput id="image" accept="image/*" />
+        <FileInput
+          id="image"
+          accept="image/*"
+          {...register("image", { required: "This filed is required" })}
+        />
       </FormRow>
 
       <FormRow>
