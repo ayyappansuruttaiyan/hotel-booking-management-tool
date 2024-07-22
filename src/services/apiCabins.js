@@ -10,22 +10,35 @@ export async function getCabins() {
   return data;
 }
 
-export async function createCabin(newCabin) {
+// this is for creating new cabin and editing a created cabin.
+export async function createEditCabin(newCabin, id) {
+  // when we update a cabin, if we not uploaded new image, we keep already uploaded image. otherwise we will store the new uploaded image.
+  // we should check if the image url is available or not
+
+  const hasImagePath = newCabin.image?.startsWith?.(supabaseUrl);
+  console.log(hasImagePath);
   //  to upload file, 1. need path name
   const imageName = `${Math.random()}-${newCabin.image.name}`; // unique image name
 
-  const imagePath = `${supabaseUrl}/storage/v1/object/public/cabin-image/${imageName}`;
+  const imagePath = hasImagePath
+    ? newCabin.image
+    : `${supabaseUrl}/storage/v1/object/public/cabin-images/${imageName}`;
 
   // https://tjfthdyxzzdtksunuplz.supabase.co/storage/v1/object/public/cabin-images/cabin_001.jpg
 
   // here, cabin_001.jpg is unique name. rest supabase cabin-images bucked url
 
-  // 1. create cabin
-  const { data, error } = await supabase
-    .from("cabins")
-    .insert([{ ...newCabin, image: imagePath }])
-    .select();
+  // 1. create A. cabin/ B. edit cabin
 
+  //A) Create cabin
+  //we need to create a cabin if there is no id. If id is there, it means we are editing the cabin.
+  let query = supabase.from("cabins");
+  if (!id) query = query.insert([{ ...newCabin, image: imagePath }]);
+
+  // B) Edit cabin
+  if (id) query = query.update({ ...newCabin, image: imagePath }).eq("id", id);
+
+  const { data, error } = await query.select().single();
   if (error) {
     console.log(error);
     throw new Error("Cabins could not be added");

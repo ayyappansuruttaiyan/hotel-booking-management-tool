@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import PropTypes from "prop-types";
 
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
@@ -7,7 +8,7 @@ import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import { useForm } from "react-hook-form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createCabin } from "../../services/apiCabins";
+import { createEditCabin } from "../../services/apiCabins";
 import toast from "react-hot-toast";
 
 const FormRow = styled.div`
@@ -46,14 +47,19 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function CreateCabinForm() {
-  const { register, handleSubmit, reset, getValues, formState } = useForm();
+function CreateCabinForm({ cabinToEdit = {} }) {
+  const { id: editId, ...editValues } = cabinToEdit;
+  console.log(editId, editValues);
+  const isEditSession = Boolean(editId);
+  const { register, handleSubmit, reset, getValues, formState } = useForm({
+    defaultValues: isEditSession ? editValues : {},
+  });
   const { errors } = formState;
   console.log(errors);
   const queryClient = useQueryClient();
-
-  const { mutate, isLoading: isCreating } = useMutation({
-    mutationFn: (newCabin) => createCabin(newCabin),
+  //1. creating cabin function
+  const { mutate: createCabin, isLoading: isCreating } = useMutation({
+    mutationFn: (newCabin) => createEditCabin(newCabin),
     onSuccess: () => {
       toast.success("New cabin created successfully");
       // on successfull cabin created, we should invalidate, stale time will set immediate. so data fetched immediately.
@@ -65,10 +71,29 @@ function CreateCabinForm() {
     onError: (err) => toast.error(err.message),
   });
 
+  //2. editing cabin function
+  const { mutate: editCabin, isLoading: isEditing } = useMutation({
+    mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),
+    onSuccess: () => {
+      toast.success(" cabin edited successfully");
+      // on successfull cabin created, we should invalidate, stale time will set immediate. so data fetched immediately.
+      queryClient.invalidateQueries({
+        queryKey: ["cabins"],
+      });
+      reset(); // we call reset() here, because, after successfully only, we reset the form, otherwise No.
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const isWorking = isCreating || isEditing;
+
   // we cannot write all the above codes inside the onSubmit fn. Because, after successful only we insert the date into the db, otherwise no.
   function onSubmit(data) {
     console.log(data);
-    mutate({ ...data, image: data.image[0] });
+    const image = typeof data.image === "string" ? data.image : data.image[0];
+    if (isEditSession)
+      editCabin({ newCabinData: { ...data, image }, id: editId });
+    else createCabin({ ...data, image: image });
   }
 
   function onError(errors) {
@@ -81,7 +106,7 @@ function CreateCabinForm() {
         <Input
           type="text"
           id="name"
-          disabled={isCreating}
+          disabled={isCreating || isEditing}
           {...register("name", { required: "* This filed is required" })}
         />
         {/* ?. optional chaining */}
@@ -93,7 +118,7 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="maxCapacity"
-          disabled={isCreating}
+          disabled={isCreating || isEditing}
           {...register("maxCapacity", {
             required: "This filed is required",
             min: { value: 1, message: "Capacity should atleast 1" },
@@ -109,7 +134,7 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="regularPrice"
-          disabled={isCreating}
+          disabled={isCreating || isEditing}
           {...register("regularPrice", {
             required: "This filed is required",
             min: { value: 1, message: "regular Price should atleast 1" },
@@ -125,7 +150,7 @@ function CreateCabinForm() {
         <Input
           type="number"
           id="discount"
-          disabled={isCreating}
+          disabled={isCreating || isEditing}
           defaultValue={0}
           {...register("discount", {
             required: "This filed is required",
@@ -142,7 +167,7 @@ function CreateCabinForm() {
         <Textarea
           type="number"
           id="description"
-          disabled={isCreating}
+          disabled={isCreating || isEditing}
           defaultValue=""
           {...register("description", { required: "This filed is required" })}
         />
@@ -156,7 +181,9 @@ function CreateCabinForm() {
         <FileInput
           id="image"
           accept="image/*"
-          {...register("image", { required: "This filed is required" })}
+          {...register("image", {
+            required: isEditSession ? false : "This filed is required",
+          })}
         />
       </FormRow>
 
@@ -165,10 +192,14 @@ function CreateCabinForm() {
         <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button disabled={isCreating}>Add cabin</Button>
+        <Button disabled={isCreating || isEditing}>
+          {isEditSession ? "Edit Cabin" : "Create new cabin"}
+        </Button>
       </FormRow>
     </Form>
   );
 }
-
+CreateCabinForm.propTypes = {
+  cabinToEdit: PropTypes.object.isRequired,
+};
 export default CreateCabinForm;
