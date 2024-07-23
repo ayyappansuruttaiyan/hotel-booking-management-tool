@@ -1,15 +1,13 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
-
+import { useCreateCabin } from "./useCreateCabin";
+import { useUpdateCabin } from "./useUpdateCabin";
 import Input from "../../ui/Input";
 import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Textarea from "../../ui/Textarea";
 import { useForm } from "react-hook-form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createEditCabin } from "../../services/apiCabins";
-import toast from "react-hot-toast";
 
 const FormRow = styled.div`
   display: grid;
@@ -56,44 +54,36 @@ function CreateCabinForm({ cabinToEdit = {} }) {
   });
   const { errors } = formState;
   console.log(errors);
-  const queryClient = useQueryClient();
-  //1. creating cabin function
-  const { mutate: createCabin, isLoading: isCreating } = useMutation({
-    mutationFn: (newCabin) => createEditCabin(newCabin),
-    onSuccess: () => {
-      toast.success("New cabin created successfully");
-      // on successfull cabin created, we should invalidate, stale time will set immediate. so data fetched immediately.
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-      reset(); // we call reset() here, because, after successfully only, we reset the form, otherwise No.
-    },
-    onError: (err) => toast.error(err.message),
-  });
 
-  //2. editing cabin function
-  const { mutate: editCabin, isLoading: isEditing } = useMutation({
-    mutationFn: ({ newCabinData, id }) => createEditCabin(newCabinData, id),
-    onSuccess: () => {
-      toast.success(" cabin edited successfully");
-      // on successfull cabin created, we should invalidate, stale time will set immediate. so data fetched immediately.
-      queryClient.invalidateQueries({
-        queryKey: ["cabins"],
-      });
-      reset(); // we call reset() here, because, after successfully only, we reset the form, otherwise No.
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  //1. creating cabin custom hook
+  const { createCabin, isCreating } = useCreateCabin();
+  //2. editing cabin custom hook
+  const { updateCabin, isUpdating } = useUpdateCabin();
 
-  const isWorking = isCreating || isEditing;
+  // const isWorking = isCreating || isEditing;
 
   // we cannot write all the above codes inside the onSubmit fn. Because, after successful only we insert the date into the db, otherwise no.
   function onSubmit(data) {
-    console.log(data);
+    // console.log(data);
     const image = typeof data.image === "string" ? data.image : data.image[0];
     if (isEditSession)
-      editCabin({ newCabinData: { ...data, image }, id: editId });
-    else createCabin({ ...data, image: image });
+      updateCabin(
+        { newCabinData: { ...data, image }, id: editId },
+        {
+          onSuccess: () => {
+            reset();
+          },
+        }
+      );
+    else
+      createCabin(
+        { ...data, image: image },
+        {
+          onSuccess: () => {
+            reset();
+          },
+        }
+      );
   }
 
   function onError(errors) {
@@ -106,7 +96,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Input
           type="text"
           id="name"
-          disabled={isCreating || isEditing}
+          disabled={isCreating || isUpdating}
           {...register("name", { required: "* This filed is required" })}
         />
         {/* ?. optional chaining */}
@@ -118,7 +108,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Input
           type="number"
           id="maxCapacity"
-          disabled={isCreating || isEditing}
+          disabled={isCreating || isUpdating}
           {...register("maxCapacity", {
             required: "This filed is required",
             min: { value: 1, message: "Capacity should atleast 1" },
@@ -134,7 +124,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Input
           type="number"
           id="regularPrice"
-          disabled={isCreating || isEditing}
+          disabled={isCreating || isUpdating}
           {...register("regularPrice", {
             required: "This filed is required",
             min: { value: 1, message: "regular Price should atleast 1" },
@@ -150,7 +140,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Input
           type="number"
           id="discount"
-          disabled={isCreating || isEditing}
+          disabled={isCreating || isUpdating}
           defaultValue={0}
           {...register("discount", {
             required: "This filed is required",
@@ -167,7 +157,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Textarea
           type="number"
           id="description"
-          disabled={isCreating || isEditing}
+          disabled={isCreating || isUpdating}
           defaultValue=""
           {...register("description", { required: "This filed is required" })}
         />
@@ -192,7 +182,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button disabled={isCreating || isEditing}>
+        <Button disabled={isCreating || isUpdating}>
           {isEditSession ? "Edit Cabin" : "Create new cabin"}
         </Button>
       </FormRow>

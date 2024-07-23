@@ -15,7 +15,7 @@ const Table = styled.div`
 
 const TableHeader = styled.header`
   display: grid;
-  grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
+  grid-template-columns: 0.6fr 1fr 1fr 1fr 1fr 1.5fr 0.4fr;
   column-gap: 2.4rem;
   align-items: center;
 
@@ -31,7 +31,7 @@ const TableHeader = styled.header`
 function CabinTable() {
   const { isLoading, data: cabins } = useQuery({
     queryKey: ["cabins"],
-    queryFn: getCabins,
+    queryFn: getCabins, // ()=>getCabins()
   });
 
   if (isLoading) return <Spinner />;
@@ -42,8 +42,10 @@ function CabinTable() {
         <div></div>
         <div>Cabin</div>
         <div>Capacity</div>
-        <div>Discount</div>
         <div>Price</div>
+        <div>Discount</div>
+        <div>Description</div>
+        <div></div>
       </TableHeader>
       {cabins.map((cabin) => (
         <CabinRow cabin={cabin} key={cabin.id} />
