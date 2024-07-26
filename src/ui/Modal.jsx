@@ -1,5 +1,7 @@
 import styled from "styled-components";
-
+import PropTypes from "prop-types";
+import { HiXMark } from "react-icons/hi2";
+import { HiXCircle } from "react-icons/hi";
 const StyledModal = styled.div`
   position: fixed;
   top: 50%;
@@ -48,3 +50,21 @@ const Button = styled.button`
     color: var(--color-grey-500);
   }
 `;
+
+function Modal({ children, onClose }) {
+  return (
+    <Overlay>
+      <StyledModal>
+        <Button onClick={onClose}>
+          <HiXCircle />
+        </Button>
+        <div>{children}</div>
+      </StyledModal>
+    </Overlay>
+  );
+}
+Modal.propTypes = {
+  children: PropTypes.object.isRequired,
+  onClose: PropTypes.object.isRequired,
+};
+export default Modal;

@@ -45,7 +45,7 @@ const Error = styled.span`
   color: var(--color-red-700);
 `;
 
-function CreateCabinForm({ cabinToEdit = {} }) {
+function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   const { id: editId, ...editValues } = cabinToEdit;
   console.log(editId, editValues);
   const isEditSession = Boolean(editId);
@@ -71,6 +71,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         { newCabinData: { ...data, image }, id: editId },
         {
           onSuccess: () => {
+            onCloseModal?.();
             reset();
           },
         }
@@ -80,6 +81,7 @@ function CreateCabinForm({ cabinToEdit = {} }) {
         { ...data, image: image },
         {
           onSuccess: () => {
+            onCloseModal?.();
             reset();
           },
         }
@@ -90,7 +92,10 @@ function CreateCabinForm({ cabinToEdit = {} }) {
     console.log(errors);
   }
   return (
-    <Form onSubmit={handleSubmit(onSubmit, onError)}>
+    <Form
+      onSubmit={handleSubmit(onSubmit, onError)}
+      type={onCloseModal ? "modal" : "regular"}
+    >
       <FormRow>
         <Label htmlFor="name">Cabin name</Label>
         <Input
@@ -179,7 +184,11 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button variation="secondary" type="reset">
+        <Button
+          variation="secondary"
+          type="reset"
+          onClick={() => onCloseModal?.()}
+        >
           Cancel
         </Button>
         <Button disabled={isCreating || isUpdating}>
@@ -191,5 +200,6 @@ function CreateCabinForm({ cabinToEdit = {} }) {
 }
 CreateCabinForm.propTypes = {
   cabinToEdit: PropTypes.object.isRequired,
+  onCloseModal: PropTypes.object.isRequired,
 };
 export default CreateCabinForm;

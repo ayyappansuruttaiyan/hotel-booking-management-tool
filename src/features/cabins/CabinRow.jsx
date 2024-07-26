@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { formatCurrency } from "../../utils/helpers";
 
 import { useDeleteCabin } from "./useDeleteCabin";
-
+import Modal from "../../ui/Modal";
 import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
 import { HiPencil, HiTrash } from "react-icons/hi";
@@ -108,6 +108,7 @@ function CabinRow({ cabin }) {
       </TableRow>
 
       {showForm && <CreateCabinForm cabinToEdit={cabin} />}
+      {showForm && <Modal />}
     </>
   );
 }
