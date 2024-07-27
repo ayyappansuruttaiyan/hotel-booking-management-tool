@@ -47,13 +47,13 @@ const Error = styled.span`
 
 function CreateCabinForm({ cabinToEdit = {}, onCloseModal }) {
   const { id: editId, ...editValues } = cabinToEdit;
-  console.log(editId, editValues);
+  // console.log(editId, editValues);
   const isEditSession = Boolean(editId);
   const { register, handleSubmit, reset, getValues, formState } = useForm({
     defaultValues: isEditSession ? editValues : {},
   });
   const { errors } = formState;
-  console.log(errors);
+  // console.log(errors);
 
   //1. creating cabin custom hook
   const { createCabin, isCreating } = useCreateCabin();

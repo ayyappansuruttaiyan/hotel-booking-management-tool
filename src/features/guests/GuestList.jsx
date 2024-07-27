@@ -1,8 +1,8 @@
-import styled from 'styled-components';
-import { useGuests } from 'features/guests/useGuests';
-import Pagination from 'ui/Pagination';
-import Spinner from 'ui/Spinner';
-import GuestListItem from './GuestListItem';
+import styled from "styled-components";
+import { useGuests } from "features/guests/useGuests";
+import Pagination from "ui/Pagination";
+import Spinner from "ui/Spinner";
+import GuestListItem from "./GuestListItem";
 
 const StyledGuestList = styled.div`
   border: 1px solid var(--color-grey-200);

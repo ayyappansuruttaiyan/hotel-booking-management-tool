@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
-import { HiXMark } from "react-icons/hi2";
+
 import { HiXCircle } from "react-icons/hi";
 const StyledModal = styled.div`
   position: fixed;

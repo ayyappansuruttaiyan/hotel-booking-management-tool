@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import PropTypes from "prop-types";
 import { formatCurrency } from "../../utils/helpers";
-
+import Button from "../../ui/Button";
 import { useDeleteCabin } from "./useDeleteCabin";
 import Modal from "../../ui/Modal";
 import { useState } from "react";
@@ -55,7 +55,7 @@ const Description = styled.div`
   color: var(--color-green-700);
 `;
 function CabinRow({ cabin }) {
-  const [showForm, setShowForm] = useState(false);
+  const [isOpenModal, setIsOpenModal] = useState(false);
 
   const {
     id: cabinID,
@@ -92,23 +92,28 @@ function CabinRow({ cabin }) {
         <Discount> {discount}</Discount>
         <Description> {description}</Description>
         <div>
-          <button disabled={isCreating} onClick={handleDuplicate}>
+          <Button disabled={isCreating} onClick={handleDuplicate}>
             <HiSquare2Stack />
-          </button>
-          <button
-            onClick={() => setShowForm((show) => !show)}
+          </Button>
+          <Button
+            onClick={() => setIsOpenModal((show) => !show)}
             disabled={isDeleting}
           >
             <HiPencil />
-          </button>
-          <button onClick={() => deleteCabin(cabinID)} disabled={isDeleting}>
+          </Button>
+          <Button onClick={() => deleteCabin(cabinID)} disabled={isDeleting}>
             <HiTrash />
-          </button>
+          </Button>
         </div>
       </TableRow>
-
-      {showForm && <CreateCabinForm cabinToEdit={cabin} />}
-      {showForm && <Modal />}
+      {isOpenModal && (
+        <Modal onClose={() => setIsOpenModal(false)}>
+          <CreateCabinForm
+            cabinToEdit={cabin}
+            onCloseModal={() => setIsOpenModal(false)}
+          />
+        </Modal>
+      )}
     </>
   );
 }
